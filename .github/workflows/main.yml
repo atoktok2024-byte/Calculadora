@@ -8,48 +8,16 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    container:
+      image: 'kivy/buildozer:stable'
 
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v3
-        with:
-          python-version: '3.10'
-
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-        with:
-          api-level: 33
-          ndk: 25b
-          cmdline-tools: 'latest'
-
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y git zip unzip openjdk-17-jdk autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev clang build-essential
-
-      - name: Install Buildozer and Cython
-        run: pip install buildozer cython
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
       - name: Build and Deploy
-        run: buildozer android debug
-        env:
-          BUILD_USER: ${{ github.actor }}
-          BUILD_NUMBER: ${{ github.run_number }}
-
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: app-release
-          path: bin/
-
-          # Executa o Buildozer na mesma etapa para garantir que as variáveis de ambiente sejam usadas
+        run: |
           buildozer android debug
-        env:
-          BUILD_USER: ${{ github.actor }}
-          BUILD_NUMBER: ${{ github.run_number }}
-          
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
