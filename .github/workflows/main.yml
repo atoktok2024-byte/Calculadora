@@ -1,25 +1,25 @@
-name: Build Kivy APK
+name: Build APK
 
 on:
   push:
     branches:
       - main
-  pull_request:
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout repositório
         uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: Configurar Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.10"
 
-      - name: Install system dependencies
+      - name: Instalar dependências do sistema
         run: |
           sudo apt update
           sudo apt install -y \
@@ -35,6 +35,48 @@ jobs:
             zlib1g-dev \
             libsqlite3-dev \
             libjpeg-dev \
+            libfreetype6-dev \
+            libgl1-mesa-dev \
+            libgles2-mesa-dev \
+            libsdl2-dev \
+            libsdl2-image-dev \
+            libsdl2-mixer-dev \
+            libsdl2-ttf-dev \
+            libportmidi-dev \
+            libswscale-dev \
+            libavformat-dev \
+            libavcodec-dev \
+            libgstreamer1.0-dev \
+            libgstreamer-plugins-base1.0-dev \
+            libmtdev-dev \
+            xclip \
+            xsel \
+            libpng-dev \
+            wget
+
+      - name: Instalar Buildozer e Cython
+        run: |
+          pip install --upgrade pip
+          pip install buildozer cython
+
+      - name: Instalar SDK Build Tools manualmente
+        run: |
+          export ANDROID_HOME=$HOME/.buildozer/android/platform/android-sdk
+          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$PATH
+          mkdir -p $ANDROID_HOME/cmdline-tools/latest
+          cd $ANDROID_HOME
+          yes | sdkmanager --licenses
+          sdkmanager --install "platform-tools" "build-tools;33.0.2" "platforms;android-33"
+
+      - name: Compilar APK
+        run: |
+          buildozer android debug
+
+      - name: Upload APK como artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: calculadora-apk
+          path: bin/*.apk            libjpeg-dev \
             libfreetype6-dev
 
       - name: Install buildozer
