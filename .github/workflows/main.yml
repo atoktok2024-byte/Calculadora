@@ -25,15 +25,25 @@ jobs:
       - name: Install Buildozer and Cython
         run: pip install buildozer cython
 
-      - name: Set up Android SDK
-        run: |
-          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "build-tools;33.0.0" "platforms;android-33"
-          export PATH="$PATH:$ANDROID_HOME/build-tools/33.0.0"
-
       - name: Build and Deploy
-        run: buildozer android debug
+        run: |
+          export ANDROID_HOME="/opt/android-sdk"
+          export PATH="$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools"
+          export BUILD_TOOLS="$ANDROID_HOME/build-tools/33.0.0"
+
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install "build-tools;33.0.0" "platforms;android-33"
+
+          buildozer android debug
         env:
           BUILD_USER: ${{ github.actor }}
+          BUILD_NUMBER: ${{ github.run_number }}
+          
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release
+          path: bin/
           BUILD_NUMBER: ${{ github.run_number }}
 
       - name: Upload APK
