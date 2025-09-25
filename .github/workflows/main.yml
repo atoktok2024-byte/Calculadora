@@ -1,92 +1,80 @@
-name: Build APK
+name: 'Kivy App to APK'
+description: 'Convert Kivy app to APK'
+inputs:
+  python-version:
+    description: 'Python version to use'
+    default: '3.8'
+  work-dir:
+    default: '.'
+    description: 'Working directory'
+  buildozer-cmd:
+    default: 'buildozer android debug'
+    description: 'Buildozer command to use'
 
-on:
-  push:
-    branches:
-      - main
-  workflow_dispatch:
+# Add the branding section
+branding:
+  color: 'green'
+  icon: 'play'
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
+runs:
+  using: "composite"
+  steps:
+    - name: Setup python
+      uses: actions/setup-python@v5
+      with:
+        architecture: x64
+        python-version: ${{ inputs.python-version }}
 
-    steps:
-      - name: Checkout repositório
-        uses: actions/checkout@v4
+    - name: Setup Java 17 required by Gradle
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'  # or 'zulu','liberica', etc.
+        java-version: '17'
 
-      - name: Configurar Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.10"
+    - name: Set JAVA_HOME
+      run: |
+        echo "JAVA_HOME=$JAVA_HOME" >> $GITHUB_ENV
+      shell: bash
 
-      - name: Instalar dependências do sistema
-        run: |
-          sudo apt update
-          sudo apt install -y \
-            build-essential \
-            git \
-            zip \
-            unzip \
-            openjdk-17-jdk \
-            python3-pip \
-            libffi-dev \
-            libssl-dev \
-            liblzma-dev \
-            zlib1g-dev \
-            libsqlite3-dev \
-            libjpeg-dev \
-            libfreetype6-dev \
-            libgl1-mesa-dev \
-            libgles2-mesa-dev \
-            libsdl2-dev \
-            libsdl2-image-dev \
-            libsdl2-mixer-dev \
-            libsdl2-ttf-dev \
-            libportmidi-dev \
-            libswscale-dev \
-            libavformat-dev \
-            libavcodec-dev \
-            libgstreamer1.0-dev \
-            libgstreamer-plugins-base1.0-dev \
-            libmtdev-dev \
-            xclip \
-            xsel \
-            libpng-dev \
-            wget
+    - name: Prepare virtual environment
+      run: |
+        python3 -m venv venv
+        source venv/bin/activate
+        echo "Using Python==$(python --version)"
+      shell: bash
+      
+    - name: Install and upgrade dependencies
+      run: |
+        sudo apt update
+        sudo apt install -y git \
+          zip \
+          unzip \
+          openjdk-17-jdk \
+          python3-pip \
+          autoconf \
+          libtool \
+          pkg-config \
+          zlib1g-dev \
+          libncurses5-dev \
+          libncursesw5-dev \
+          libtinfo5 \
+          cmake \
+          libffi-dev \
+          libssl-dev
+        export PATH=$PATH:~/.local/bin/
+        python3 -m pip install --upgrade \
+          Cython==0.29.33 \
+          buildozer
+      shell: bash
 
-      - name: Instalar Buildozer e Cython
-        run: |
-          pip install --upgrade pip
-          pip install buildozer cython
+    - name: Install requirements in requirements.txt if it exists
+      run: |
+        if [ -f requirements.txt ]; then
+          python3 -m pip install -r requirements.txt
+        fi
+      shell: bash
 
-      - name: Instalar SDK e NDK manualmente
-        run: |
-          export ANDROID_HOME=$HOME/.buildozer/android/platform/android-sdk
-          mkdir -p $ANDROID_HOME
-          
-          # Baixa command line tools
-          wget https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O cmdline-tools.zip
-          unzip cmdline-tools.zip -d $ANDROID_HOME/cmdline-tools
-          mv $ANDROID_HOME/cmdline-tools/cmdline-tools $ANDROID_HOME/cmdline-tools/latest
-          rm cmdline-tools.zip
-
-          # Adiciona ao PATH
-          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$PATH
-
-          # Aceita licenças e instala pacotes necessários
-          yes | sdkmanager --licenses
-          sdkmanager --install "platform-tools" "build-tools;33.0.2" "platforms;android-33" "ndk;23.1.7779620"
-
-          # Cria compatibilidade com estrutura antiga que o Buildozer procura
-          mkdir -p $ANDROID_HOME/tools/bin
-          ln -s $ANDROID_HOME/cmdline-tools/latest/bin/* $ANDROID_HOME/tools/bin/ || true
-
-      - name: Compilar APK
-        run: |
-          buildozer android debug
-
-      - name: Upload APK como artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: calculadora-apk
-          path: bin/*.apk
+    - name: Build with Buildozer
+      run: |
+        ${{ inputs.buildozer-cmd }}
+      shell: bash
