@@ -50,3 +50,6 @@ android.java_source_version = 1.8
 
 # (str) The Ant version to use
 android.ant_version = 1.9.1
+
+# (str) The Android build tools version to use
+android.build_tools = 33.0.0
