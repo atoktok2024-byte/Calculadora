@@ -1,51 +1,52 @@
 [app]
 
-# (title)
-title = Calc Lens
+# (str) Title of your application
+title = Calculadora de Curvas
 
-# (package)
-package.name = com.surfassagem.app
+# (str) Package name
+package.name = com.example.calculadora
+
+# (str) Package domain (needed for android/ios packaging)
 package.domain = org.test
 
-# (source)
+# (str) Application version
+version = 1.0.0
+
+# (list) Application requirements
+# android.api = 33
+requirements = python3, kivy, Pillow
+
+# (str) Path to the main file of your application
 source.dir = .
-source.include_exts = py,png,jpg,kv,atlas
 
-# (entrypoint)
-source.entrypoint = main.py
+# (str) Main application file
+main.py = main.py
 
-# (requirements)
-requirements = python3,kivy
-
-# (version)
-version = 0.1
-build = 1
-
-# (permissions)
+# (list) Permissions
 android.permissions = INTERNET
 
-# (build-profile)
-# A profile to use for building, either `debug` or `release`.
-# Release builds require more configuration.
-build_profile = debug
+# (bool) If you use a custom icon, use this property to specify it
+# icon.filename = %(source.dir)s/icon.png
 
-# (os)
-# The minimum Android API level to build for.
-# Higher versions are more secure and have more features, but might not be supported by older devices.
+# (list) If you use a custom splash screen, use this property to specify it
+# splash.filename = %(source.dir)s/splash.png
+
+[buildozer]
+
+# (int) The Android api level to use
 android.api = 33
 
-# (ndk)
+# (int) The minimum Android api level to use
+android.min_api = 21
+
+# (int) The target Android api level to use
+android.target_sdk = 33
+
+# (str) The Android NDK version to use
 android.ndk = 25b
 
-# (sdk)
-android.sdk = 33.0.0
+# (str) The Java version to use
+android.java_source_version = 1.8
 
-# (dist)
-# This is the distribution to use.
-# Recommended for a stable build.
-android.dist = jammy
-
-# (private-key)
-# This is the path to your private key.
-# We will use the default debug key for now.
-android.release_keystore = debug.keystore
+# (str) The Ant version to use
+android.ant_version = 1.9.1
