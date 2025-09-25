@@ -7,15 +7,10 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     
     steps:
       - uses: actions/checkout@v4
-
-      - name: Install libtinfo5
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libtinfo5
 
       - name: Build APK with Buildozer
         uses: digreatbrian/buildozer-action@v2
